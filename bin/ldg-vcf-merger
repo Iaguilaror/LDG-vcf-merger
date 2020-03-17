@@ -29,12 +29,16 @@ vcftargets=$(find -L . \
   -e "s#.sv.vcf.gz#.merged.vcf#" \
 | sort -u)
 
+echo "[...] Estás seguro que quieres continuar:"
+## request confirmation from user
+confirm
+
 # loop for each sample
 for target in $vcftargets
 do
   echo "[>..] Juntando $target"
   vcfstem=$(echo $target | sed "s#.merged.vcf##")
-  vcfprereqs=$(ls $vcfstem.* | grep -v ".build" | grep -v ".tbi")
+  vcfprereqs=$(ls $vcfstem.* | grep -v ".build" | grep -v ".tbi" | grep -v ".merged.vcf")
   # index each vcfprereq
   for individual_prereq in $vcfprereqs
   do
