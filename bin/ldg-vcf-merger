@@ -1,0 +1,48 @@
+#!/bin/bash
+
+## dev by iaguilaror@gmail.com
+
+### Define confirm function, solution TAKEN from https://stackoverflow.com/questions/3231804/in-bash-how-to-add-are-you-sure-y-n-to-any-command-or-alias
+confirm() {
+    # call with a prompt string or use a default
+    read -r -p "${1:-[>..]Estas seguro? [s/N]} " response
+    case "$response" in
+        [sS][iI]|[sS])
+            true
+            ;;
+        *)
+            exit 0
+            ;;
+    esac
+}
+
+echo "[...] se juntaran vcfs archivos en las siguientes carpetas:"
+
+## list vcf files and store at variable
+vcftargets=$(find -L . \
+  -mindepth 3 \
+  -maxdepth 3 \
+  -type f \
+  -name "*.vcf.gz" \
+| sed -e "s#.cnv.vcf.gz#.merged.vcf#" \
+  -e "s#.hard-filtered.vcf.gz#.merged.vcf#" \
+  -e "s#.sv.vcf.gz#.merged.vcf#" \
+| sort -u)
+
+# loop for each sample
+for target in $vcftargets
+do
+  echo "[>..] Juntando $target"
+  vcfstem=$(echo $target | sed "s#.merged.vcf##")
+  vcfprereqs=$(ls $vcfstem.* | grep -v ".build" | grep -v ".tbi")
+  # index each vcfprereq
+  for individual_prereq in $vcfprereqs
+  do
+    echo "  [>..] indexing $individual_prereq"
+    tabix -p vcf -f $individual_prereq
+  done
+  echo "  [>>.] Se juntaran los siguientes archivos:"
+  echo "$vcfprereqs" | sed "s#^#\t#"
+  bcftools concat --allow-overlaps $vcfprereqs > $target.build \
+  && mv $target.build $target
+done
