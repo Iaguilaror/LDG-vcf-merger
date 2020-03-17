@@ -24,9 +24,9 @@ vcftargets=$(find -L . \
   -maxdepth 3 \
   -type f \
   -name "*.vcf.gz" \
-| sed -e "s#.cnv.vcf.gz#.merged.vcf#" \
-  -e "s#.hard-filtered.vcf.gz#.merged.vcf#" \
-  -e "s#.sv.vcf.gz#.merged.vcf#" \
+| sed -e "s#.cnv.vcf.gz#.ldgmerged.vcf#" \
+  -e "s#.hard-filtered.vcf.gz#.ldgmerged.vcf#" \
+  -e "s#.sv.vcf.gz#.ldgmerged.vcf#" \
 | sort -u)
 
 echo "[...] Estás seguro que quieres continuar:"
@@ -37,8 +37,8 @@ confirm
 for target in $vcftargets
 do
   echo "[>..] Juntando $target"
-  vcfstem=$(echo $target | sed "s#.merged.vcf##")
-  vcfprereqs=$(ls $vcfstem.* | grep -v ".build" | grep -v ".tbi" | grep -v ".merged.vcf")
+  vcfstem=$(echo $target | sed "s#.ldgmerged.vcf##")
+  vcfprereqs=$(ls $vcfstem.* | grep -v ".build" | grep -v ".tbi" | grep -v ".ldgmerged.vcf")
   # index each vcfprereq
   for individual_prereq in $vcfprereqs
   do
